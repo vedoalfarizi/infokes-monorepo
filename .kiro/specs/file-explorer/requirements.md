@@ -173,3 +173,18 @@ The File Explorer is a high-performance, scalable web application that provides 
 3. THE API_Server SHALL define shared TypeScript types for `Folder`, `FolderChild`, and `ApiError` that are used by both the Controller_Layer and consumed by the frontend.
 4. FOR ALL valid `Folder` objects serialized by the Pretty_Printer and then parsed by the frontend type definitions, the resulting object SHALL be structurally equivalent to the original (round-trip property).
 5. WHEN the `GET /folders/:id/children` endpoint is called with a non-UUID `:id` parameter, THE Controller_Layer SHALL return an HTTP 400 response with a structured error body before delegating to the Service_Layer.
+
+---
+
+### Requirement 11: Unique Folder Names Within the Same Level
+
+**User Story:** As a user, I want to be prevented from creating two folders with the same name under the same parent, so that the folder hierarchy remains unambiguous and navigable.
+
+#### Acceptance Criteria
+
+1. THE `folders` table SHALL enforce that no two folders share the same `name` under the same `parent_id` using database-level partial unique indexes.
+2. A partial unique index on `(parent_id, name) WHERE parent_id IS NOT NULL` SHALL prevent duplicate names among sibling folders.
+3. A partial unique index on `(name) WHERE parent_id IS NULL` SHALL prevent duplicate names among root-level folders.
+4. WHEN `insertFolder` is called with a `name` that already exists at the same level, THE Repository_Layer SHALL throw a `DuplicateNameError`.
+5. WHEN the Service_Layer propagates a `DuplicateNameError`, THE Controller_Layer SHALL return an HTTP 409 Conflict response with a structured `ApiError` body containing `code: 'DUPLICATE_NAME'`.
+6. THE uniqueness constraint SHALL be enforced at the database level, ensuring correctness even under concurrent insert operations.

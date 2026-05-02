@@ -18,3 +18,13 @@ export class ValidationError extends Error {
     Object.setPrototypeOf(this, new.target.prototype)
   }
 }
+
+export class DuplicateNameError extends Error {
+  readonly code = 'DUPLICATE_NAME' as const
+
+  constructor(message: string) {
+    super(message)
+    this.name = 'DuplicateNameError'
+    Object.setPrototypeOf(this, new.target.prototype)
+  }
+}

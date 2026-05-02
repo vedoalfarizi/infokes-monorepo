@@ -233,7 +233,8 @@ rootFolders: Folder[]
 CREATE TABLE folders (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name       TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  parent_id  UUID REFERENCES folders(id)
 );
 
 -- Closure table: stores every ancestor-descendant pair
@@ -247,6 +248,17 @@ CREATE TABLE folder_paths (
 -- Indexes for efficient child and ancestor lookups
 CREATE INDEX idx_folder_paths_ancestor   ON folder_paths (ancestor, depth);
 CREATE INDEX idx_folder_paths_descendant ON folder_paths (descendant);
+
+-- Uniqueness: no two siblings may share the same name.
+-- Two partial indexes are required because NULL != NULL in SQL, so a single
+-- unique index on (parent_id, name) would not catch duplicate root names.
+CREATE UNIQUE INDEX idx_folders_unique_name_per_parent
+  ON folders (parent_id, name)
+  WHERE parent_id IS NOT NULL;
+
+CREATE UNIQUE INDEX idx_folders_unique_name_root
+  ON folders (name)
+  WHERE parent_id IS NULL;
 ```
 
 **Closure Table invariants:**
@@ -290,7 +302,7 @@ WHERE NOT EXISTS (
 -- Alternatively, using a parent_id column on folders for O(1) root lookup
 ```
 
-> **Design note:** For root-folder lookup efficiency, the `folders` table may optionally include a `parent_id UUID REFERENCES folders(id)` column. This allows a simple `WHERE parent_id IS NULL` query for roots without a subquery on `folder_paths`. The Closure Table remains the authoritative source for all depth-based traversal.
+> **Design note:** The `folders` table includes a `parent_id UUID REFERENCES folders(id)` column. This serves two purposes: it enables an efficient `WHERE parent_id IS NULL` query for root-folder lookups (avoiding a subquery on `folder_paths`), and it is required by the partial unique indexes that enforce sibling-name uniqueness. The Closure Table remains the authoritative source for all depth-based traversal.
 
 ### TypeScript Shared Types
 
@@ -443,6 +455,14 @@ export const UUIDParamSchema = t.Object({
 
 ---
 
+### Property 13: Duplicate folder name at the same level is rejected
+
+*For any* attempt to insert a folder with a name that already exists under the same parent (or at the root level if `parentId` is null), the operation SHALL be rejected with a `DuplicateNameError` and no new row SHALL be inserted into `folders` or `folder_paths`.
+
+**Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.6**
+
+---
+
 ## Error Handling
 
 ### Backend Error Taxonomy
@@ -451,6 +471,7 @@ export const UUIDParamSchema = t.Object({
 |---|---|---|---|
 | `ValidationError` | 400 | `INVALID_UUID` | `:id` param fails UUID format check |
 | `NotFoundError` | 404 | `NOT_FOUND` | Folder `id` does not exist in DB |
+| `DuplicateNameError` | 409 | `DUPLICATE_NAME` | Folder name already exists at the same level |
 | Unhandled exception | 500 | `INTERNAL_ERROR` | Any uncaught error in Controller |
 
 ### Error Response Shape
@@ -474,6 +495,10 @@ app.onError(({ code, error, set }) => {
   if (error instanceof NotFoundError) {
     set.status = 404
     return { error: { code: 'NOT_FOUND', message: error.message } }
+  }
+  if (error instanceof DuplicateNameError) {
+    set.status = 409
+    return { error: { code: 'DUPLICATE_NAME', message: error.message } }
   }
   if (code === 'VALIDATION') {
     set.status = 400
@@ -523,6 +548,7 @@ Both unit/example-based tests and property-based tests are used. Unit tests cove
 | Property 7 | Generate valid requests and error conditions, assert response envelope shape for both success and error |
 | Property 11 | Generate random UUIDs not in DB, call `GET /folders/:id/children`, assert 404 with `ApiError` body |
 | Property 12 | Generate random trees, delete a folder, assert no `folder_paths` rows reference the deleted ID |
+| Property 13 | Generate folder names that already exist at a given level, attempt insert, assert `DuplicateNameError` is thrown and DB state is unchanged |
 
 Tag format: `// Feature: file-explorer, Property N: <property_text>`
 

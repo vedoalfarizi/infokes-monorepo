@@ -1,7 +1,7 @@
 // App entry point — mounts ElysiaJS modules and starts the server
 import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
-import { NotFoundError } from './shared/errors.js'
+import { NotFoundError, DuplicateNameError } from './shared/errors.js'
 import { foldersModule } from './modules/folders/index.js'
 
 const app = new Elysia()
@@ -18,6 +18,10 @@ const app = new Elysia()
     if (error instanceof NotFoundError) {
       set.status = 404
       return { error: { code: 'NOT_FOUND', message: error.message } }
+    }
+    if (error instanceof DuplicateNameError) {
+      set.status = 409
+      return { error: { code: 'DUPLICATE_NAME', message: error.message } }
     }
     if (code === 'VALIDATION') {
       set.status = 400

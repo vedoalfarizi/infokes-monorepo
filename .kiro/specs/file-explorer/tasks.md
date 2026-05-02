@@ -28,13 +28,18 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
     - Insert a representative tree (at least 3 levels deep, multiple siblings) for manual testing and integration tests
     - _Requirements: 5.1, 5.2_
 
+  - [x] 2.4 Write SQL migration for sibling-name uniqueness constraint
+    - Add `CREATE UNIQUE INDEX idx_folders_unique_name_per_parent ON folders (parent_id, name) WHERE parent_id IS NOT NULL`
+    - Add `CREATE UNIQUE INDEX idx_folders_unique_name_root ON folders (name) WHERE parent_id IS NULL`
+    - _Requirements: 11.1, 11.2, 11.3_
+
 - [ ] 3. Implement the Repository layer
   - [x] 3.1 Create `backend/src/modules/folders/repository.ts`
     - Implement `findRoots(): Promise<Folder[]>` — query folders with no parent using `WHERE parent_id IS NULL` (or the closure-table subquery)
     - Implement `findChildren(parentId: string): Promise<FolderChild[]>` — join `folders` and `folder_paths` with `ancestor = parentId AND depth = 1`, include `childCount` sub-select
     - Implement `exists(id: string): Promise<boolean>`
-    - Implement `insertFolder(name: string, parentId: string | null): Promise<Folder>` — three-step closure-table insert (folder row → self-ref row → ancestor propagation)
-    - _Requirements: 2.4, 3.7, 5.2, 6.1, 6.2_
+    - Implement `insertFolder(name: string, parentId: string | null): Promise<Folder>` — three-step closure-table insert (folder row → self-ref row → ancestor propagation); catch PostgreSQL `23505` unique-violation and re-throw as `DuplicateNameError`
+    - _Requirements: 2.4, 3.7, 5.2, 6.1, 6.2, 11.4_
 
   - [ ]* 3.2 Write unit tests for the Repository layer
     - Mock the `pg` client; verify correct SQL and parameters for `findRoots`, `findChildren`, `exists`, and `insertFolder`
@@ -58,6 +63,12 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
     - Tag: `// Feature: file-explorer, Property 12: Closure Table delete cascades all related rows`
     - **Validates: Requirements 6.5**
 
+  - [ ]* 3.6 Write property test — Property 13: Duplicate folder name at the same level is rejected
+    - **Property 13: Duplicate folder name at the same level is rejected**
+    - Generate folder names that already exist at a given level (both root and non-root), attempt `insertFolder`, assert `DuplicateNameError` is thrown and no new row exists in `folders` or `folder_paths`
+    - Tag: `// Feature: file-explorer, Property 13: Duplicate folder name at the same level is rejected`
+    - **Validates: Requirements 11.1, 11.2, 11.3, 11.4, 11.6**
+
 - [ ] 4. Implement the Service layer
   - [x] 4.1 Create `backend/src/modules/folders/service.ts`
     - Implement `getRootFolders(): Promise<Folder[]>` — delegates to `FolderRepository.findRoots()`
@@ -79,9 +90,9 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
     - _Requirements: 2.3, 3.6, 7.1, 10.1, 10.2, 10.5_
 
   - [x] 5.3 Create `backend/src/index.ts` (app entry point)
-    - Instantiate Elysia app, mount the folders module, register global `onError` handler mapping `NotFoundError` → 404, `VALIDATION` → 400, unhandled → 500
+    - Instantiate Elysia app, mount the folders module, register global `onError` handler mapping `NotFoundError` → 404, `DuplicateNameError` → 409, `VALIDATION` → 400, unhandled → 500
     - Enable CORS for frontend origin
-    - _Requirements: 7.5, 7.6, 10.2_
+    - _Requirements: 7.5, 7.6, 10.2, 11.5_
 
   - [ ]* 5.4 Write unit tests for the Controller layer
     - Use ElysiaJS `handle()` test utility; verify HTTP 200 for valid requests, 400 for non-UUID `:id`, 404 for unknown UUID, 500 for unhandled exception

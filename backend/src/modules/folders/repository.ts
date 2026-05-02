@@ -1,6 +1,7 @@
 // Repository layer — all SQL queries for folder operations
 import pg from 'pg'
 import type { Folder, FolderChild } from '../../shared/types.js'
+import { DuplicateNameError } from '../../shared/errors.js'
 
 // Shared connection pool — reads DATABASE_URL from environment
 const pool = new pg.Pool({
@@ -142,6 +143,13 @@ export abstract class FolderRepository {
       return toFolder(newFolder)
     } catch (err) {
       await client.query('ROLLBACK')
+      // PostgreSQL unique_violation error code is '23505'
+      if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === '23505') {
+        const scope = parentId === null ? 'root level' : `folder '${parentId}'`
+        throw new DuplicateNameError(
+          `A folder named '${name}' already exists at ${scope}`
+        )
+      }
       throw err
     } finally {
       client.release()
