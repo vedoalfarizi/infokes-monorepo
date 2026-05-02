@@ -68,17 +68,17 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
     - Mock Repository; verify `NotFoundError` is thrown for unknown IDs; verify delegation to Repository for valid IDs
     - _Requirements: 7.2, 7.5_
 
-- [ ] 5. Implement the Controller layer and TypeBox schemas
-  - [ ] 5.1 Create `backend/src/modules/folders/model.ts`
+- [x] 5. Implement the Controller layer and TypeBox schemas
+  - [x] 5.1 Create `backend/src/modules/folders/model.ts`
     - Define `FolderSchema`, `FolderChildSchema`, and `UUIDParamSchema` using TypeBox (`t` from `elysia`)
     - _Requirements: 7.4, 10.3_
 
-  - [ ] 5.2 Create `backend/src/modules/folders/index.ts` (Controller)
+  - [x] 5.2 Create `backend/src/modules/folders/index.ts` (Controller)
     - Register `GET /folders` route — delegates to `FolderService.getRootFolders()`, returns `ApiResponse<Folder[]>`
     - Register `GET /folders/:id/children` route — validates `:id` against `UUIDParamSchema` (400 on failure), delegates to `FolderService.getChildren(id)`, returns `ApiResponse<FolderChild[]>`
     - _Requirements: 2.3, 3.6, 7.1, 10.1, 10.2, 10.5_
 
-  - [ ] 5.3 Create `backend/src/index.ts` (app entry point)
+  - [x] 5.3 Create `backend/src/index.ts` (app entry point)
     - Instantiate Elysia app, mount the folders module, register global `onError` handler mapping `NotFoundError` → 404, `VALIDATION` → 400, unhandled → 500
     - Enable CORS for frontend origin
     - _Requirements: 7.5, 7.6, 10.2_
