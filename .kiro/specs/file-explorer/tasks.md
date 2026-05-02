@@ -59,7 +59,7 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
     - **Validates: Requirements 6.5**
 
 - [ ] 4. Implement the Service layer
-  - [ ] 4.1 Create `backend/src/modules/folders/service.ts`
+  - [x] 4.1 Create `backend/src/modules/folders/service.ts`
     - Implement `getRootFolders(): Promise<Folder[]>` — delegates to `FolderRepository.findRoots()`
     - Implement `getChildren(id: string): Promise<FolderChild[]>` — calls `FolderRepository.exists(id)`, throws `NotFoundError` if false, then calls `FolderRepository.findChildren(id)`
     - _Requirements: 7.2, 7.5_
