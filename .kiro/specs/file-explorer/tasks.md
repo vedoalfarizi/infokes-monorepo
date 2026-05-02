@@ -29,7 +29,7 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
     - _Requirements: 5.1, 5.2_
 
 - [ ] 3. Implement the Repository layer
-  - [ ] 3.1 Create `backend/src/modules/folders/repository.ts`
+  - [x] 3.1 Create `backend/src/modules/folders/repository.ts`
     - Implement `findRoots(): Promise<Folder[]>` — query folders with no parent using `WHERE parent_id IS NULL` (or the closure-table subquery)
     - Implement `findChildren(parentId: string): Promise<FolderChild[]>` — join `folders` and `folder_paths` with `ancestor = parentId AND depth = 1`, include `childCount` sub-select
     - Implement `exists(id: string): Promise<boolean>`
