@@ -133,14 +133,14 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
     - Tag: `// Feature: file-explorer, Property 5: Pinia store normalized map consistency`
     - **Validates: Requirements 9.1, 9.6**
 
-- [ ] 8. Implement frontend components
-  - [ ] 8.1 Create `frontend/src/components/FolderTree.vue`
+- [x] 8. Implement frontend components
+  - [x] 8.1 Create `frontend/src/components/FolderTree.vue`
     - Composition API component; accepts `rootFolders: Folder[]` prop
     - Renders one `FolderNode` per entry in `rootFolders` using `v-for`
     - Does NOT use PrimeVue Tree or TreeSelect
     - _Requirements: 8.1, 8.6_
 
-  - [ ] 8.2 Create `frontend/src/components/FolderNode.vue`
+  - [x] 8.2 Create `frontend/src/components/FolderNode.vue`
     - Composition API component; props: `folder: Folder`, `depth: number`
     - Internal state: `isExpanded = ref(false)`; computed: `children`, `fetchStatus`, `isSelected`, `isLeaf`
     - Renders expand toggle (hidden when `isLeaf`), folder name (clickable → `selectFolder`), loading spinner (`v-if="fetchStatus === 'loading'"`), error badge with retry button (`v-if="fetchStatus === 'error'"`)
@@ -149,26 +149,26 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
     - `toggleExpand()` calls `store.fetchChildren` if not loaded, then toggles `isExpanded`
     - _Requirements: 3.2, 3.3, 3.4, 4.6, 5.3, 8.2, 8.3, 8.4, 8.5_
 
-  - [ ] 8.3 Create `frontend/src/components/FolderChildTable.vue`
+  - [x] 8.3 Create `frontend/src/components/FolderChildTable.vue`
     - Displays a PrimeVue DataTable (or plain table) listing `FolderChild` entries with columns: name and child count
     - _Requirements: 4.5_
 
-  - [ ] 8.4 Create `frontend/src/components/RightPane.vue`
+  - [x] 8.4 Create `frontend/src/components/RightPane.vue`
     - Shows empty-state message when `selectedFolder` is null
     - Renders `FolderChildTable` with the selected folder's children when a folder is selected
     - _Requirements: 1.3, 1.4, 4.2_
 
-  - [ ] 8.5 Create `frontend/src/components/LeftPane.vue`
+  - [x] 8.5 Create `frontend/src/components/LeftPane.vue`
     - Wraps `FolderTree`, passes `store.rootFolders` as prop
     - _Requirements: 1.2_
 
-  - [ ] 8.6 Create `frontend/src/components/FileExplorer.vue`
+  - [x] 8.6 Create `frontend/src/components/FileExplorer.vue`
     - Uses PrimeVue `Splitter` / `SplitterPanel` for the dual-pane layout
     - Mounts `LeftPane` and `RightPane` side by side
     - Calls `store.fetchRootFolders()` in `onMounted`
     - _Requirements: 1.1, 2.1, 2.2_
 
-  - [ ] 8.7 Wire `FileExplorer.vue` into `App.vue` and register Pinia + PrimeVue in `main.ts`
+  - [x] 8.7 Wire `FileExplorer.vue` into `App.vue` and register Pinia + PrimeVue in `main.ts`
     - _Requirements: 1.1_
 
   - [ ]* 8.8 Write unit tests for FolderNode component

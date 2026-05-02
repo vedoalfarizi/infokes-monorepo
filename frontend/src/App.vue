@@ -1,12 +1,11 @@
 <template>
   <div id="app">
-    <!-- FileExplorer component will be wired in task 8 -->
-    <p>File Explorer</p>
+    <FileExplorer />
   </div>
 </template>
 
 <script setup lang="ts">
-// FileExplorer component will be imported and used in task 8
+import FileExplorer from './components/FileExplorer.vue'
 </script>
 
 <style>
