@@ -14,17 +14,17 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
   - Install frontend dependencies: `vue`, `pinia`, `primevue`, `primeicons`; dev dependencies: `vitest`, `@vue/test-utils`, `fast-check`, `@vitejs/plugin-vue`
   - _Requirements: 7.4, 10.3_
 
-- [ ] 2. Implement database schema and migrations
-  - [ ] 2.1 Write SQL migration file for the `folders` table
+- [x] 2. Implement database schema and migrations
+  - [x] 2.1 Write SQL migration file for the `folders` table
     - `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`, `name TEXT NOT NULL`, `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`, optional `parent_id UUID REFERENCES folders(id)`
     - _Requirements: 6.1_
 
-  - [ ] 2.2 Write SQL migration file for the `folder_paths` closure table
+  - [x] 2.2 Write SQL migration file for the `folder_paths` closure table
     - `ancestor UUID NOT NULL REFERENCES folders(id) ON DELETE CASCADE`, `descendant UUID NOT NULL REFERENCES folders(id) ON DELETE CASCADE`, `depth INTEGER NOT NULL CHECK (depth >= 0)`, `PRIMARY KEY (ancestor, descendant)`
     - Add `CREATE INDEX idx_folder_paths_ancestor ON folder_paths (ancestor, depth)` and `CREATE INDEX idx_folder_paths_descendant ON folder_paths (descendant)`
     - _Requirements: 6.2, 6.3, 6.4_
 
-  - [ ] 2.3 Write a database seed/fixture script
+  - [x] 2.3 Write a database seed/fixture script
     - Insert a representative tree (at least 3 levels deep, multiple siblings) for manual testing and integration tests
     - _Requirements: 5.1, 5.2_
 
