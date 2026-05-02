@@ -1,20 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import type { Folder, FolderChild, ApiResponse } from '../shared/types'
 
-// Types (mirrored from backend/src/shared/types.ts)
-export interface Folder {
-  id: string        // UUID
-  name: string
-  createdAt: string // ISO 8601
-}
-
-export interface FolderChild extends Folder {
-  childCount: number
-}
-
-export interface ApiResponse<T> {
-  data: T
-}
+// Re-export shared types so consumers can import from the store as before
+export type { Folder, FolderChild, ApiResponse }
 
 export type FetchStatus = 'idle' | 'loading' | 'loaded' | 'error'
 

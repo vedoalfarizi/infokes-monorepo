@@ -200,8 +200,8 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
 - [ ] 9. Checkpoint — Frontend tests pass
   - Ensure all frontend unit and property tests pass, ask the user if questions arise.
 
-- [ ] 10. Implement shared serialization and round-trip property test
-  - [ ] 10.1 Ensure `shared/types.ts` is importable by the frontend (copy or symlink, or use a shared package)
+- [x] 10. Implement shared serialization and round-trip property test
+  - [x] 10.1 Ensure `shared/types.ts` is importable by the frontend (copy or symlink, or use a shared package)
     - _Requirements: 7.4, 10.3_
 
   - [ ]* 10.2 Write property test — Property 1: Folder serialization round-trip
