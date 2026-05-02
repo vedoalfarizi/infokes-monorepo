@@ -7,7 +7,8 @@
     "skipLibCheck": true,
     "jsx": "preserve",
     "lib": ["ESNext", "DOM"],
-    "paths": {}
+    "paths": {},
+    "types": ["vite/client"]
   },
   "include": ["src/**/*", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]

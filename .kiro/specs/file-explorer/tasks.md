@@ -108,8 +108,8 @@ Implement a full-stack File Explorer with a PostgreSQL Closure Table backend (El
 - [ ] 6. Checkpoint — Backend tests pass
   - Ensure all backend unit and property tests pass, ask the user if questions arise.
 
-- [ ] 7. Implement the Pinia store
-  - [ ] 7.1 Create `frontend/src/stores/folderStore.ts`
+- [x] 7. Implement the Pinia store
+  - [x] 7.1 Create `frontend/src/stores/folderStore.ts`
     - Define state: `folders: Record<string, Folder>`, `childrenMap: Record<string, string[]>`, `fetchStatus: Record<string, FetchStatus>`, `selectedFolderId: string | null`, `rootIds: string[]`
     - Implement `fetchRootFolders()` action — calls `GET /folders`, populates `folders` map and `rootIds`, sets fetch status for each root to `idle`
     - Implement `fetchChildren(folderId)` action — guards against re-fetch when status is `loaded`; sets status to `loading`; calls `GET /folders/:id/children`; on success stores children and sets status to `loaded`; on failure sets status to `error`
