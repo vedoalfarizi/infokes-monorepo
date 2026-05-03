@@ -129,6 +129,8 @@ function handleCreateCancel() {
   cursor: default;
   align-items: stretch;
   padding: 8px;
+  grid-column: span 2;
+  min-width: 220px;
 }
 
 .folder-icon-grid__card--creating:hover {
