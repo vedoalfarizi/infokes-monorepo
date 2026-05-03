@@ -67,7 +67,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Test: valid ID delegates to `deleteSubtree`
     - _Requirements: 2.6_
 
-- [ ] 4. Add new routes to the controller
+- [x] 4. Add new routes to the controller
   - Add `GET /:id` route to `backend/src/modules/folders/index.ts`
     - Call `FolderService.getFolder(params.id)` and return `{ data }`
     - Use `{ params: UUIDParamSchema }` for TypeBox validation

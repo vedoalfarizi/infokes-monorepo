@@ -1,7 +1,7 @@
 // Controller — HTTP routing for /folders endpoints
 import { Elysia } from 'elysia'
 import { FolderService } from './service.js'
-import { FolderSchema, FolderChildSchema, UUIDParamSchema, CreateFolderBodySchema } from './model.js'
+import { FolderSchema, FolderChildSchema, UUIDParamSchema, CreateFolderBodySchema, RenameFolderBodySchema } from './model.js'
 
 export const foldersModule = new Elysia({ prefix: '/folders' })
   /**
@@ -40,4 +40,46 @@ export const foldersModule = new Elysia({ prefix: '/folders' })
       return new Response(JSON.stringify({ data }), { status: 201 })
     },
     { body: CreateFolderBodySchema }
+  )
+  /**
+   * GET /folders/:id
+   * Returns a single folder by ID wrapped in the ApiResponse envelope.
+   * NotFoundError is mapped to 404 by the global onError handler.
+   */
+  .get(
+    '/:id',
+    async ({ params }) => {
+      const data = await FolderService.getFolder(params.id)
+      return { data }
+    },
+    { params: UUIDParamSchema }
+  )
+  /**
+   * PATCH /folders/:id
+   * Renames the folder identified by :id.
+   * TypeBox validates :id as UUID and body.name as non-empty string.
+   * NotFoundError (404), DuplicateNameError (409), ValidationError (400)
+   * are handled by the global onError handler.
+   */
+  .patch(
+    '/:id',
+    async ({ params, body }) => {
+      const data = await FolderService.renameFolder(params.id, body.name)
+      return { data }
+    },
+    { params: UUIDParamSchema, body: RenameFolderBodySchema }
+  )
+  /**
+   * DELETE /folders/:id
+   * Deletes the folder and its entire subtree within a single transaction.
+   * Returns HTTP 204 with no body on success.
+   * NotFoundError is mapped to 404 by the global onError handler.
+   */
+  .delete(
+    '/:id',
+    async ({ params, set }) => {
+      await FolderService.deleteFolder(params.id)
+      set.status = 204
+    },
+    { params: UUIDParamSchema }
   )
