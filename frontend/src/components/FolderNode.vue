@@ -1,9 +1,17 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue'
+import { useToast } from 'primevue/usetoast'
 import { useFolderStore, type Folder } from '../stores/folderStore'
+import RenameDialog from './RenameDialog.vue'
+import ConfirmDeleteDialog from './ConfirmDeleteDialog.vue'
 
 export default defineComponent({
   name: 'FolderNode',
+
+  components: {
+    RenameDialog,
+    ConfirmDeleteDialog,
+  },
 
   props: {
     folder: {
@@ -18,7 +26,16 @@ export default defineComponent({
 
   setup(props) {
     const store = useFolderStore()
+    const toast = useToast()
     const isExpanded = ref(false)
+
+    // Context menu state
+    const menuOpen = ref(false)
+
+    // Dialog state
+    const isRenaming = ref(false)
+    const isDeleting = ref(false)
+    const renameApiError = ref('')
 
     const children = computed(() => store.getChildren(props.folder.id))
     const fetchStatus = computed(() => store.getFetchStatus(props.folder.id))
@@ -38,14 +55,96 @@ export default defineComponent({
       store.selectFolder(props.folder.id)
     }
 
+    function openMenu() {
+      menuOpen.value = !menuOpen.value
+    }
+
+    function closeMenu() {
+      menuOpen.value = false
+    }
+
+    function startRename() {
+      renameApiError.value = ''
+      isRenaming.value = true
+      menuOpen.value = false
+    }
+
+    function startDelete() {
+      isDeleting.value = true
+      menuOpen.value = false
+    }
+
+    async function handleRenameConfirm(newName: string) {
+      try {
+        await store.renameFolder(props.folder.id, newName)
+        isRenaming.value = false
+        renameApiError.value = ''
+      } catch (err: unknown) {
+        const apiErr = err as Error & { code?: string }
+        if (apiErr.code === 'DUPLICATE_NAME' || apiErr.code === 'NOT_FOUND') {
+          // Pass the error message back into the dialog so it stays open
+          renameApiError.value = apiErr.message
+        } else {
+          // Unexpected error — close dialog and show toast
+          isRenaming.value = false
+          toast.add({
+            severity: 'error',
+            summary: 'Rename failed',
+            detail: apiErr.message ?? 'An unexpected error occurred.',
+            life: 4000,
+          })
+        }
+      }
+    }
+
+    function handleRenameCancel() {
+      isRenaming.value = false
+      renameApiError.value = ''
+    }
+
+    async function handleDeleteConfirm() {
+      try {
+        await store.deleteFolder(props.folder.id)
+        // isDeleting will become irrelevant as the node is removed from the tree,
+        // but reset it defensively in case the component is kept alive.
+        isDeleting.value = false
+      } catch (err: unknown) {
+        const apiErr = err as Error & { code?: string }
+        isDeleting.value = false
+        toast.add({
+          severity: 'error',
+          summary: 'Delete failed',
+          detail: apiErr.message ?? 'An unexpected error occurred.',
+          life: 4000,
+        })
+      }
+    }
+
+    function handleDeleteCancel() {
+      isDeleting.value = false
+    }
+
     return {
+      store,
       isExpanded,
+      menuOpen,
+      isRenaming,
+      isDeleting,
+      renameApiError,
       children,
       fetchStatus,
       isSelected,
       isLeaf,
       toggleExpand,
       selectFolder,
+      openMenu,
+      closeMenu,
+      startRename,
+      startDelete,
+      handleRenameConfirm,
+      handleRenameCancel,
+      handleDeleteConfirm,
+      handleDeleteCancel,
     }
   },
 })
@@ -53,7 +152,7 @@ export default defineComponent({
 
 <template>
   <li
-    v-memo="[isSelected, isExpanded, fetchStatus]"
+    v-memo="[isSelected, isExpanded, fetchStatus, isRenaming, isDeleting, menuOpen]"
     class="folder-node"
     role="treeitem"
     :aria-expanded="isLeaf ? undefined : isExpanded"
@@ -112,7 +211,71 @@ export default defineComponent({
           Retry
         </button>
       </span>
+
+      <!-- Context menu trigger -->
+      <div class="folder-menu-wrapper">
+        <button
+          class="folder-menu-btn"
+          :aria-label="`Actions for ${folder.name}`"
+          aria-haspopup="true"
+          :aria-expanded="menuOpen"
+          @click.stop="openMenu"
+        >
+          ⋮
+        </button>
+
+        <!-- Dropdown menu -->
+        <ul
+          v-if="menuOpen"
+          class="folder-menu"
+          role="menu"
+        >
+          <li role="none">
+            <button
+              class="folder-menu__item"
+              role="menuitem"
+              @click.stop="startRename"
+            >
+              Rename
+            </button>
+          </li>
+          <li role="none">
+            <button
+              class="folder-menu__item folder-menu__item--danger"
+              role="menuitem"
+              @click.stop="startDelete"
+            >
+              Delete
+            </button>
+          </li>
+        </ul>
+      </div>
     </div>
+
+    <!-- Click-outside overlay to close the menu -->
+    <div
+      v-if="menuOpen"
+      class="folder-menu-overlay"
+      aria-hidden="true"
+      @click="closeMenu"
+    />
+
+    <!-- Rename dialog -->
+    <RenameDialog
+      v-if="isRenaming"
+      :folder="folder"
+      :api-error="renameApiError"
+      @confirm="handleRenameConfirm"
+      @cancel="handleRenameCancel"
+    />
+
+    <!-- Delete confirmation dialog -->
+    <ConfirmDeleteDialog
+      v-if="isDeleting"
+      :folder="folder"
+      @confirm="handleDeleteConfirm"
+      @cancel="handleDeleteCancel"
+    />
 
     <!-- Recursive children -->
     <ul
@@ -141,10 +304,11 @@ export default defineComponent({
   gap: 4px;
   padding-top: 2px;
   padding-bottom: 2px;
-  padding-right: 8px;
+  padding-right: 4px;
   cursor: default;
   border-radius: 4px;
   user-select: none;
+  position: relative;
 }
 
 .folder-row--selected {
@@ -227,6 +391,88 @@ export default defineComponent({
 
 .folder-retry:hover {
   background-color: #ffebee;
+}
+
+/* Context menu */
+.folder-menu-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.folder-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  color: #555;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.1s, background-color 0.1s;
+}
+
+/* Show the ⋮ button when hovering the row or when the menu is open */
+.folder-row:hover .folder-menu-btn,
+.folder-menu-btn[aria-expanded="true"] {
+  opacity: 1;
+}
+
+.folder-menu-btn:hover {
+  background-color: #e0e0e0;
+  color: #111;
+}
+
+.folder-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  min-width: 120px;
+  margin: 2px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.folder-menu__item {
+  display: block;
+  width: 100%;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.folder-menu__item:hover {
+  background-color: #f5f5f5;
+}
+
+.folder-menu__item--danger {
+  color: #c62828;
+}
+
+.folder-menu__item--danger:hover {
+  background-color: #ffebee;
+}
+
+/* Invisible full-screen overlay to catch outside clicks */
+.folder-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
 }
 
 .folder-children {

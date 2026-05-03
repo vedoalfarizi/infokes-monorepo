@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import InlineNameInput from './InlineNameInput.vue'
 import type { Folder } from '../shared/types'
 
 const props = defineProps<{
   folder: Folder
+  /** API-level error message passed back from the parent (e.g. DUPLICATE_NAME, NOT_FOUND) */
+  apiError?: string
 }>()
 
 const emit = defineEmits<{
@@ -15,6 +17,15 @@ const emit = defineEmits<{
 
 const validationError = ref('')
 const visible = ref(true)
+
+// When the parent sets an apiError, surface it as the validation error so
+// InlineNameInput can display it inline without closing the dialog.
+watch(
+  () => props.apiError,
+  (msg) => {
+    if (msg) validationError.value = msg
+  },
+)
 
 function handleConfirm(name: string) {
   const trimmed = name.trim()

@@ -1,11 +1,13 @@
 <template>
   <div id="app">
     <FileExplorer />
+    <Toast />
   </div>
 </template>
 
 <script setup lang="ts">
 import FileExplorer from './components/FileExplorer.vue'
+import Toast from 'primevue/toast'
 </script>
 
 <style>

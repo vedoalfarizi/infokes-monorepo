@@ -272,7 +272,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Use `fc.record({ id: fc.uuid(), name: fc.string({ minLength: 1 }), createdAt: fc.string() })`; render `ConfirmDeleteDialog`; assert rendered output contains `folder.name`
     - **Validates: Requirements 2.1**
 
-- [ ] 11. Update `FolderNode.vue` to support rename and delete
+- [x] 11. Update `FolderNode.vue` to support rename and delete
   - Add a context menu trigger (a `⋮` button) to each folder row in `frontend/src/components/FolderNode.vue`
   - Add local state: `isRenaming = ref(false)`, `isDeleting = ref(false)`, `actionError = ref('')`
   - On "Rename" menu item: set `isRenaming.value = true`
