@@ -9,6 +9,8 @@ export type FetchStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
+const SELECTED_FOLDER_KEY = 'fileExplorer:selectedFolderId'
+
 export const useFolderStore = defineStore('folders', () => {
   // State
   const folders = ref<Record<string, Folder>>({})
@@ -16,6 +18,7 @@ export const useFolderStore = defineStore('folders', () => {
   const fetchStatus = ref<Record<string, FetchStatus>>({})
   const selectedFolderId = ref<string | null>(null)
   const rootIds = ref<string[]>([])
+  const navigationHistory = ref<string[]>([])
 
   // Getters
   const getChildren = (folderId: string): Folder[] => {
@@ -31,6 +34,8 @@ export const useFolderStore = defineStore('folders', () => {
     if (selectedFolderId.value === null) return null
     return folders.value[selectedFolderId.value] ?? null
   })
+
+  const canGoBack = computed((): boolean => navigationHistory.value.length > 0)
 
   const rootFolders = computed((): Folder[] => {
     return rootIds.value.map((id) => folders.value[id]).filter((f): f is Folder => f !== undefined)
@@ -109,15 +114,177 @@ export const useFolderStore = defineStore('folders', () => {
 
   /**
    * Sets the selected folder and triggers fetchChildren if not already loaded.
-   * Requirements: 4.1, 4.3, 4.4
+   * Pushes the previous selection onto navigationHistory before updating (Req 3.2).
+   * Persists the new selection to localStorage (Req 4.1, 4.7).
+   * Requirements: 3.1, 3.2, 4.1, 4.3, 4.4, 4.7
    */
   async function selectFolder(folderId: string): Promise<void> {
+    // Push current selection onto history stack before changing (Req 3.2)
+    if (selectedFolderId.value !== null) {
+      navigationHistory.value = [...navigationHistory.value, selectedFolderId.value]
+    }
+
     // Set selected folder (Req 4.1)
     selectedFolderId.value = folderId
+
+    // Persist to localStorage (Req 4.1, 4.7)
+    localStorage.setItem(SELECTED_FOLDER_KEY, folderId)
 
     // Fetch children if not already loaded (Req 4.3, 4.4)
     if (getFetchStatus(folderId) !== 'loaded') {
       await fetchChildren(folderId)
+    }
+  }
+
+  /**
+   * Navigates back to the most recent valid entry in navigationHistory.
+   * Skips IDs that no longer exist in the folders map (e.g. deleted folders).
+   * If the stack is exhausted, clears the selection.
+   * Requirements: 3.5, 3.6, 3.7, 3.8
+   */
+  async function navigateBack(): Promise<void> {
+    while (navigationHistory.value.length > 0) {
+      const stack = [...navigationHistory.value]
+      const previousId = stack.pop()!
+      navigationHistory.value = stack
+
+      // Skip deleted folders (Req 3.8)
+      if (folders.value[previousId] !== undefined) {
+        selectedFolderId.value = previousId
+        localStorage.setItem(SELECTED_FOLDER_KEY, previousId)
+        if (getFetchStatus(previousId) !== 'loaded') {
+          await fetchChildren(previousId)
+        }
+        return
+      }
+    }
+    // Stack exhausted — clear selection
+    selectedFolderId.value = null
+    localStorage.removeItem(SELECTED_FOLDER_KEY)
+  }
+
+  /**
+   * Renames a folder via PATCH /folders/:id.
+   * On success, updates the folder in-place in the store.
+   * On error, attaches the API error code to the thrown Error.
+   * Requirements: 1.3
+   */
+  async function renameFolder(folderId: string, newName: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/folders/${folderId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName }),
+    })
+
+    if (!response.ok) {
+      const body: ApiError = await response.json()
+      const err = new Error(body.error.message) as Error & { code: string }
+      err.code = body.error.code
+      throw err
+    }
+
+    const body: ApiResponse<Folder> = await response.json()
+    // Update in-place — all computed properties referencing folders[id] update reactively
+    folders.value[folderId] = body.data
+  }
+
+  /**
+   * Collects folderId and all known descendant IDs from the store's childrenMap via BFS.
+   * Private helper — not exported.
+   * Requirements: 2.3
+   */
+  function collectSubtreeIds(folderId: string): Set<string> {
+    const result = new Set<string>()
+    const queue = [folderId]
+    while (queue.length > 0) {
+      const id = queue.shift()!
+      result.add(id)
+      const children = childrenMap.value[id] ?? []
+      queue.push(...children)
+    }
+    return result
+  }
+
+  /**
+   * Deletes a folder and its entire subtree via DELETE /folders/:id.
+   * On 204, removes all affected IDs from the store's normalized state.
+   * Clears selectedFolderId and prunes navigationHistory if affected.
+   * Requirements: 2.3, 2.4, 2.5
+   */
+  async function deleteFolder(folderId: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/folders/${folderId}`, {
+      method: 'DELETE',
+    })
+
+    if (!response.ok) {
+      const body: ApiError = await response.json()
+      const err = new Error(body.error.message) as Error & { code: string }
+      err.code = body.error.code
+      throw err
+    }
+
+    // Collect all known descendants to remove from store
+    const toRemove = collectSubtreeIds(folderId)
+
+    for (const id of toRemove) {
+      delete folders.value[id]
+      delete childrenMap.value[id]
+      delete fetchStatus.value[id]
+    }
+
+    // Remove folderId from its parent's childrenMap entry (Req 2.5)
+    for (const [parentId, children] of Object.entries(childrenMap.value)) {
+      if (children.includes(folderId)) {
+        childrenMap.value[parentId] = children.filter((id) => id !== folderId)
+        break
+      }
+    }
+
+    // Remove from rootIds if applicable
+    rootIds.value = rootIds.value.filter((id) => !toRemove.has(id))
+
+    // Clear selection if deleted folder was selected (Req 2.4)
+    if (selectedFolderId.value !== null && toRemove.has(selectedFolderId.value)) {
+      selectedFolderId.value = null
+      localStorage.removeItem(SELECTED_FOLDER_KEY)
+    }
+
+    // Prune navigation history of deleted IDs (Req 3.8)
+    navigationHistory.value = navigationHistory.value.filter((id) => !toRemove.has(id))
+  }
+
+  /**
+   * Initializes the store on app mount.
+   * Fetches root folders, then attempts to restore the persisted selected folder from localStorage.
+   * Verifies the persisted folder still exists via GET /folders/:id before restoring.
+   * Requirements: 4.2, 4.3, 4.4, 4.5, 4.6
+   */
+  async function initializeStore(): Promise<void> {
+    await fetchRootFolders()
+
+    const persistedId = localStorage.getItem(SELECTED_FOLDER_KEY)
+    if (!persistedId) return // Req 4.6 — no persisted ID, start with no selection
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/folders/${persistedId}`)
+      if (!response.ok) {
+        // Folder no longer exists — clear persisted value (Req 4.5)
+        localStorage.removeItem(SELECTED_FOLDER_KEY)
+        return
+      }
+      const body: ApiResponse<Folder> = await response.json()
+      folders.value[body.data.id] = body.data
+      // Initialise fetch status if not already tracked
+      if (fetchStatus.value[body.data.id] === undefined) {
+        fetchStatus.value[body.data.id] = 'idle'
+      }
+
+      // Set selection directly — bypasses history push since this is a restore, not navigation
+      selectedFolderId.value = body.data.id
+      await fetchChildren(body.data.id) // Req 4.4
+    } catch {
+      // Network error — clear persisted value and start with no selection
+      localStorage.removeItem(SELECTED_FOLDER_KEY)
     }
   }
 
@@ -175,15 +342,21 @@ export const useFolderStore = defineStore('folders', () => {
     fetchStatus,
     selectedFolderId,
     rootIds,
+    navigationHistory,
     // Getters
     getChildren,
     getFetchStatus,
     selectedFolder,
     rootFolders,
+    canGoBack,
     // Actions
     fetchRootFolders,
     fetchChildren,
     selectFolder,
+    navigateBack,
     createFolder,
+    renameFolder,
+    deleteFolder,
+    initializeStore,
   }
 })

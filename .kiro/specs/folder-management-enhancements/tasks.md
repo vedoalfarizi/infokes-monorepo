@@ -110,15 +110,15 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Existing ID → assert HTTP 200 with `{ data: { id, name, createdAt } }`; `fc.uuid()` not in DB → assert HTTP 404 with `code: 'NOT_FOUND'`
     - **Validates: Requirements 4.8**
 
-- [ ] 7. Add new state and actions to `folderStore`
-  - [ ] 7.1 Add `navigationHistory` state and `canGoBack` computed to `frontend/src/stores/folderStore.ts`
+- [x] 7. Add new state and actions to `folderStore`
+  - [x] 7.1 Add `navigationHistory` state and `canGoBack` computed to `frontend/src/stores/folderStore.ts`
     - Add `const navigationHistory = ref<string[]>([])`
     - Add `const SELECTED_FOLDER_KEY = 'fileExplorer:selectedFolderId'`
     - Add `const canGoBack = computed((): boolean => navigationHistory.value.length > 0)`
     - Export `navigationHistory` and `canGoBack` in the store's return object
     - _Requirements: 3.1, 3.3, 3.4_
 
-  - [ ] 7.2 Modify `selectFolder` in `folderStore.ts` to push history and persist to localStorage
+  - [x] 7.2 Modify `selectFolder` in `folderStore.ts` to push history and persist to localStorage
     - Before updating `selectedFolderId`, push the current value onto `navigationHistory` if it is non-null
     - After updating `selectedFolderId`, call `localStorage.setItem(SELECTED_FOLDER_KEY, folderId)`
     - Keep the existing `fetchChildren` guard unchanged
@@ -134,7 +134,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Use `fc.uuid()`; after `selectFolder`, assert `localStorage.getItem(SELECTED_FOLDER_KEY)` equals the ID
     - **Validates: Requirements 4.1, 4.7**
 
-  - [ ] 7.5 Implement `navigateBack` action in `folderStore.ts`
+  - [x] 7.5 Implement `navigateBack` action in `folderStore.ts`
     - Pop entries from `navigationHistory` in a loop, skipping IDs absent from `folders.value`
     - On finding a valid ID: set `selectedFolderId.value`, write to `localStorage`, call `fetchChildren` if not loaded, return
     - If stack exhausted: set `selectedFolderId.value = null`, call `localStorage.removeItem(SELECTED_FOLDER_KEY)`
@@ -156,7 +156,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Use `fc.array(fc.uuid())`; set `navigationHistory` directly; assert `canGoBack` is `true` iff array is non-empty
     - **Validates: Requirements 3.3, 3.4**
 
-  - [ ] 7.9 Implement `renameFolder` action in `folderStore.ts`
+  - [x] 7.9 Implement `renameFolder` action in `folderStore.ts`
     - `PATCH` to `${API_BASE_URL}/folders/${folderId}` with `{ name: newName }`
     - On non-OK: parse `ApiError` body, attach `code` to thrown `Error`, re-throw
     - On success: update `folders.value[folderId]` with the returned folder in-place
@@ -168,7 +168,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Use `fc.uuid()` × `fc.string({ minLength: 1 })` filtered to non-whitespace; mock fetch to return 200; assert `folders[id].name` equals the new name
     - **Validates: Requirements 1.3**
 
-  - [ ] 7.11 Implement `deleteFolder` action in `folderStore.ts`
+  - [x] 7.11 Implement `deleteFolder` action in `folderStore.ts`
     - `DELETE` to `${API_BASE_URL}/folders/${folderId}`
     - On non-OK: parse `ApiError` body, attach `code`, re-throw
     - On 204: call `collectSubtreeIds(folderId)` to get all known descendant IDs
@@ -180,7 +180,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Export `deleteFolder` in the store's return object
     - _Requirements: 2.3, 2.4, 2.5_
 
-  - [ ] 7.12 Implement `collectSubtreeIds` helper in `folderStore.ts`
+  - [x] 7.12 Implement `collectSubtreeIds` helper in `folderStore.ts`
     - BFS over `childrenMap.value` starting from `folderId`
     - Return a `Set<string>` of all IDs in the subtree (including `folderId` itself)
     - Keep as a private (non-exported) function inside the store
@@ -201,7 +201,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Use `fc.uuid()` as parent (status `'loaded'`) × `fc.uuid()` as child in `childrenMap[parentId]`; mock fetch to return 204; assert child absent from `childrenMap[parentId]`
     - **Validates: Requirements 2.5**
 
-  - [ ] 7.16 Implement `initializeStore` action in `folderStore.ts`
+  - [x] 7.16 Implement `initializeStore` action in `folderStore.ts`
     - Call `fetchRootFolders()` first
     - Read `localStorage.getItem(SELECTED_FOLDER_KEY)`; if null, return early
     - `GET ${API_BASE_URL}/folders/${persistedId}`; on non-OK response, call `localStorage.removeItem(SELECTED_FOLDER_KEY)` and return
