@@ -121,8 +121,8 @@ Implement end-to-end folder creation across three layers: backend API endpoint, 
 - [ ] 7. Checkpoint — verify store tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 8. Create `InlineNameInput.vue` component
-  - [ ] 8.1 Create `frontend/src/components/InlineNameInput.vue`
+- [x] 8. Create `InlineNameInput.vue` component
+  - [x] 8.1 Create `frontend/src/components/InlineNameInput.vue`
     - Props: `{ placeholder?: string; error?: string }`
     - Emits: `confirm(name: string)`, `cancel()`
     - Render a text `<input>`, a confirm button (✓), and a cancel button (✗)
