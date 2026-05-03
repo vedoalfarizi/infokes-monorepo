@@ -50,7 +50,20 @@ function handleUpdateError(value: string) {
 <template>
   <div class="left-pane">
     <div class="left-pane__toolbar">
-      <span class="left-pane__toolbar-label">Folders</span>
+      <div class="left-pane__toolbar-left">
+        <button
+          class="left-pane__back-btn"
+          type="button"
+          title="Go back"
+          aria-label="Go back"
+          :disabled="!store.canGoBack"
+          :class="{ 'left-pane__back-btn--disabled': !store.canGoBack }"
+          @click="store.navigateBack()"
+        >
+          ←
+        </button>
+        <span class="left-pane__toolbar-label">Folders</span>
+      </div>
       <button
         class="left-pane__new-folder-btn"
         type="button"
@@ -94,6 +107,12 @@ function handleUpdateError(value: string) {
   flex-shrink: 0;
 }
 
+.left-pane__toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .left-pane__toolbar-label {
   font-size: 11px;
   font-weight: 600;
@@ -101,6 +120,39 @@ function handleUpdateError(value: string) {
   text-transform: uppercase;
   color: #6b7280;
   user-select: none;
+}
+
+.left-pane__back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.left-pane__back-btn:hover:not(:disabled) {
+  background-color: #f3f4f6;
+  color: #1976d2;
+}
+
+.left-pane__back-btn:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+.left-pane__back-btn--disabled,
+.left-pane__back-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .left-pane__new-folder-btn {

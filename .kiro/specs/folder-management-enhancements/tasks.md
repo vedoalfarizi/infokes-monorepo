@@ -296,7 +296,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
   - Render `<ConfirmDeleteDialog :folder="deletingFolder">` when `deletingFolder` is non-null; on `confirm`: call `store.deleteFolder`; on error show a generic message; on `cancel`: clear `deletingFolder`
   - _Requirements: 1.3, 1.5, 1.6, 2.3, 2.4, 2.5, 2.6_
 
-- [ ] 14. Update `LeftPane.vue` to add the Back button
+- [x] 14. Update `LeftPane.vue` to add the Back button
   - Import `useFolderStore` (already imported) in `frontend/src/components/LeftPane.vue`
   - Add a "Back" button to the `.left-pane__toolbar` div, to the left of the "Folders" label
   - Bind `:disabled="!store.canGoBack"` and `@click="store.navigateBack()"`
