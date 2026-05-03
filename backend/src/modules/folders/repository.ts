@@ -83,6 +83,17 @@ export abstract class FolderRepository {
   }
 
   /**
+   * Returns the folder with the given id, or null if it does not exist.
+   */
+  static async findById(id: string): Promise<Folder | null> {
+    const result = await pool.query<FolderRow>(
+      `SELECT id, name, created_at FROM folders WHERE id = $1`,
+      [id]
+    )
+    return result.rows[0] ? toFolder(result.rows[0]) : null
+  }
+
+  /**
    * Returns true if a folder with the given id exists in the database.
    */
   static async exists(id: string): Promise<boolean> {
@@ -91,6 +102,27 @@ export abstract class FolderRepository {
       [id]
     )
     return result.rows[0].exists
+  }
+
+  /**
+   * Updates the name of an existing folder and returns the updated folder.
+   * Throws DuplicateNameError if the new name conflicts with a sibling (PG 23505).
+   */
+  static async updateName(id: string, name: string): Promise<Folder> {
+    try {
+      const result = await pool.query<FolderRow>(
+        `UPDATE folders SET name = $1 WHERE id = $2 RETURNING id, name, created_at`,
+        [name, id]
+      )
+      return toFolder(result.rows[0])
+    } catch (err) {
+      if (err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === '23505') {
+        throw new DuplicateNameError(
+          `A folder named '${name}' already exists at the same level`
+        )
+      }
+      throw err
+    }
   }
 
   /**
@@ -150,6 +182,45 @@ export abstract class FolderRepository {
           `A folder named '${name}' already exists at ${scope}`
         )
       }
+      throw err
+    } finally {
+      client.release()
+    }
+  }
+
+  /**
+   * Deletes a folder and its entire subtree (all descendants) within a single
+   * transaction. Uses the closure table to collect all descendant IDs first,
+   * then deletes closure-table rows before folder rows to respect FK ordering.
+   */
+  static async deleteSubtree(id: string): Promise<void> {
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
+
+      // Collect all descendant IDs including the target folder itself
+      const descendants = await client.query<{ descendant: string }>(
+        `SELECT descendant FROM folder_paths WHERE ancestor = $1`,
+        [id]
+      )
+      const ids = descendants.rows.map(r => r.descendant)
+
+      // Delete closure-table rows where ancestor OR descendant is in the subtree
+      await client.query(
+        `DELETE FROM folder_paths
+         WHERE ancestor = ANY($1::uuid[]) OR descendant = ANY($1::uuid[])`,
+        [ids]
+      )
+
+      // Delete the folder rows themselves
+      await client.query(
+        `DELETE FROM folders WHERE id = ANY($1::uuid[])`,
+        [ids]
+      )
+
+      await client.query('COMMIT')
+    } catch (err) {
+      await client.query('ROLLBACK')
       throw err
     } finally {
       client.release()

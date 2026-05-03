@@ -12,19 +12,19 @@ Implement four enhancements on top of the existing create-folder foundation: ren
   - Export the new schema alongside the existing ones
   - _Requirements: 1.8_
 
-- [ ] 2. Extend `FolderRepository` with new data-access methods
-  - [ ] 2.1 Implement `FolderRepository.findById` in `backend/src/modules/folders/repository.ts`
+- [x] 2. Extend `FolderRepository` with new data-access methods
+  - [x] 2.1 Implement `FolderRepository.findById` in `backend/src/modules/folders/repository.ts`
     - Query `SELECT id, name, created_at FROM folders WHERE id = $1`
     - Return `toFolder(row)` if found, `null` otherwise
     - _Requirements: 4.8_
 
-  - [ ] 2.2 Implement `FolderRepository.updateName` in `backend/src/modules/folders/repository.ts`
+  - [x] 2.2 Implement `FolderRepository.updateName` in `backend/src/modules/folders/repository.ts`
     - `UPDATE folders SET name = $1 WHERE id = $2 RETURNING id, name, created_at`
     - Catch PostgreSQL error code `23505` and re-throw as `DuplicateNameError`
     - Return the updated `Folder` via `toFolder`
     - _Requirements: 1.2, 1.8_
 
-  - [ ] 2.3 Implement `FolderRepository.deleteSubtree` in `backend/src/modules/folders/repository.ts`
+  - [x] 2.3 Implement `FolderRepository.deleteSubtree` in `backend/src/modules/folders/repository.ts`
     - Open a transaction with `pool.connect()`
     - Collect all descendant IDs (including target): `SELECT descendant FROM folder_paths WHERE ancestor = $1`
     - Delete closure-table rows: `DELETE FROM folder_paths WHERE ancestor = ANY($1::uuid[]) OR descendant = ANY($1::uuid[])`
