@@ -281,7 +281,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
   - Render `<ConfirmDeleteDialog>` when `isDeleting` is true; on `confirm`: call `store.deleteFolder(folder.id)`; on error show a toast or inline message; on `cancel`: set `isDeleting = false`
   - _Requirements: 1.1, 1.3, 1.5, 1.6, 2.1, 2.3, 2.4, 2.5_
 
-- [ ] 12. Update `FolderIconGrid.vue` to emit rename and delete events
+- [x] 12. Update `FolderIconGrid.vue` to emit rename and delete events
   - Add `rename: [folderId: string]` and `delete: [folderId: string]` to the emits definition in `frontend/src/components/FolderIconGrid.vue`
   - Add a `⋮` button (or right-click context menu) to each folder card
   - On "Rename": emit `rename(child.id)`

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import InlineNameInput from './InlineNameInput.vue'
 import type { FolderChild } from '../shared/types'
 
@@ -13,7 +14,12 @@ const emit = defineEmits<{
   createConfirm: [name: string]
   createCancel: []
   'update:error': [value: string]
+  rename: [folderId: string]
+  delete: [folderId: string]
 }>()
+
+// Track which card's menu is open (by folder id), or null if none
+const openMenuId = ref<string | null>(null)
 
 function handleDblClick(folderId: string) {
   emit('select', folderId)
@@ -25,6 +31,24 @@ function handleCreateConfirm(name: string) {
 
 function handleCreateCancel() {
   emit('createCancel')
+}
+
+function toggleMenu(folderId: string) {
+  openMenuId.value = openMenuId.value === folderId ? null : folderId
+}
+
+function closeMenu() {
+  openMenuId.value = null
+}
+
+function handleRename(folderId: string) {
+  openMenuId.value = null
+  emit('rename', folderId)
+}
+
+function handleDelete(folderId: string) {
+  openMenuId.value = null
+  emit('delete', folderId)
 }
 </script>
 
@@ -60,6 +84,45 @@ function handleCreateCancel() {
       >
         <span class="folder-icon-grid__icon" aria-hidden="true">📁</span>
         <span class="folder-icon-grid__name">{{ child.name }}</span>
+
+        <!-- Context menu trigger -->
+        <div class="folder-card-menu-wrapper">
+          <button
+            class="folder-card-menu-btn"
+            :aria-label="`Actions for ${child.name}`"
+            aria-haspopup="true"
+            :aria-expanded="openMenuId === child.id"
+            @click.stop="toggleMenu(child.id)"
+          >
+            ⋮
+          </button>
+
+          <!-- Dropdown menu -->
+          <ul
+            v-if="openMenuId === child.id"
+            class="folder-card-menu"
+            role="menu"
+          >
+            <li role="none">
+              <button
+                class="folder-card-menu__item"
+                role="menuitem"
+                @click.stop="handleRename(child.id)"
+              >
+                Rename
+              </button>
+            </li>
+            <li role="none">
+              <button
+                class="folder-card-menu__item folder-card-menu__item--danger"
+                role="menuitem"
+                @click.stop="handleDelete(child.id)"
+              >
+                Delete
+              </button>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <!-- Inline creation card (appended at the end when isCreating) -->
@@ -79,6 +142,14 @@ function handleCreateCancel() {
         />
       </div>
     </div>
+
+    <!-- Click-outside overlay to close any open menu -->
+    <div
+      v-if="openMenuId !== null"
+      class="folder-card-menu-overlay"
+      aria-hidden="true"
+      @click="closeMenu"
+    />
   </div>
 </template>
 
@@ -113,6 +184,7 @@ function handleCreateCancel() {
   transition: background-color 0.15s, border-color 0.15s;
   text-align: center;
   min-width: 0;
+  position: relative;
 }
 
 .folder-icon-grid__card:hover {
@@ -149,5 +221,88 @@ function handleCreateCancel() {
   word-break: break-word;
   overflow-wrap: anywhere;
   max-width: 100%;
+}
+
+/* Context menu */
+.folder-card-menu-wrapper {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.folder-card-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  color: #555;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.1s, background-color 0.1s;
+}
+
+/* Show the ⋮ button when hovering the card or when the menu is open */
+.folder-icon-grid__card:hover .folder-card-menu-btn,
+.folder-card-menu-btn[aria-expanded="true"] {
+  opacity: 1;
+}
+
+.folder-card-menu-btn:hover {
+  background-color: #e0e0e0;
+  color: #111;
+}
+
+.folder-card-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  min-width: 120px;
+  margin: 2px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.folder-card-menu__item {
+  display: block;
+  width: 100%;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.folder-card-menu__item:hover {
+  background-color: #f5f5f5;
+}
+
+.folder-card-menu__item--danger {
+  color: #c62828;
+}
+
+.folder-card-menu__item--danger:hover {
+  background-color: #ffebee;
+}
+
+/* Invisible full-screen overlay to catch outside clicks */
+.folder-card-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
 }
 </style>
