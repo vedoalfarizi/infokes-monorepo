@@ -5,12 +5,14 @@ import type { FolderChild } from '../shared/types'
 const props = defineProps<{
   children: FolderChild[]
   isCreating: boolean
+  error?: string
 }>()
 
 const emit = defineEmits<{
   select: [folderId: string]
   createConfirm: [name: string]
   createCancel: []
+  'update:error': [value: string]
 }>()
 
 function handleDblClick(folderId: string) {
@@ -70,8 +72,10 @@ function handleCreateCancel() {
         <span class="folder-icon-grid__icon" aria-hidden="true">📁</span>
         <InlineNameInput
           placeholder="Folder name"
+          :error="error"
           @confirm="handleCreateConfirm"
           @cancel="handleCreateCancel"
+          @update:error="(val) => emit('update:error', val)"
         />
       </div>
     </div>

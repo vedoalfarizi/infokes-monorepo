@@ -169,8 +169,8 @@ Implement end-to-end folder creation across three layers: backend API endpoint, 
     - Use `fc.array(fc.record({ id: fc.uuid(), name: fc.string(), createdAt: fc.string(), childCount: fc.integer() }), { minLength: 1 })`; double-click a random card; assert `select` is emitted with exactly that folder's id
     - **Validates: Requirements 9.4**
 
-- [ ] 10. Update `RightPane.vue`
-  - [ ] 10.1 Replace `FolderChildTable` with `FolderIconGrid` in `frontend/src/components/RightPane.vue`
+- [x] 10. Update `RightPane.vue`
+  - [x] 10.1 Replace `FolderChildTable` with `FolderIconGrid` in `frontend/src/components/RightPane.vue`
     - Remove the `FolderChildTable` import and usage
     - Import and render `FolderIconGrid` with `:children` and `:isCreating` props
     - Add a "New Folder" button visible only when `store.selectedFolder !== null`
