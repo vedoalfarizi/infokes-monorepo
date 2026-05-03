@@ -6,7 +6,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
 
 ## Tasks
 
-- [ ] 1. Extend backend model with new TypeBox schemas
+- [x] 1. Extend backend model with new TypeBox schemas
   - Add `RenameFolderBodySchema` to `backend/src/modules/folders/model.ts`
   - Schema: `name` as `t.String({ minLength: 1 })`
   - Export the new schema alongside the existing ones

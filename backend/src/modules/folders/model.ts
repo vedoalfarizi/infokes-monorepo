@@ -20,3 +20,7 @@ export const CreateFolderBodySchema = t.Object({
   name:     t.String({ minLength: 1 }),
   parentId: t.Optional(t.Union([t.String({ format: 'uuid' }), t.Null()])),
 })
+
+export const RenameFolderBodySchema = t.Object({
+  name: t.String({ minLength: 1 }),
+})
