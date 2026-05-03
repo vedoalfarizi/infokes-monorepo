@@ -197,8 +197,8 @@ Implement end-to-end folder creation across three layers: backend API endpoint, 
     - Use `fc.string({ minLength: 1 })` filtered to non-whitespace × `fc.uuid()` as selected folder id; assert `store.createFolder` is always called with `(name, selectedFolderId)`
     - **Validates: Requirements 2.4**
 
-- [ ] 11. Update `LeftPane.vue`
-  - [ ] 11.1 Update `frontend/src/components/LeftPane.vue` to support root folder creation
+- [x] 11. Update `LeftPane.vue`
+  - [x] 11.1 Update `frontend/src/components/LeftPane.vue` to support root folder creation
     - Add a "New Folder" button above the `FolderTree`
     - Import `InlineNameInput`
     - Add local `isCreating` (`ref(false)`) and `duplicateError` (`ref('')`) state
