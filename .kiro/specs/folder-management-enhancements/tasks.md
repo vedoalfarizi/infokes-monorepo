@@ -288,7 +288,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
   - On "Delete": emit `delete(child.id)`
   - _Requirements: 1.1, 2.1_
 
-- [ ] 13. Update `RightPane.vue` to handle rename and delete from the grid
+- [x] 13. Update `RightPane.vue` to handle rename and delete from the grid
   - Add local state: `renamingFolder = ref<Folder | null>(null)`, `deletingFolder = ref<Folder | null>(null)` in `frontend/src/components/RightPane.vue`
   - Handle `@rename` from `FolderIconGrid`: set `renamingFolder.value = store.folders[folderId]`
   - Handle `@delete` from `FolderIconGrid`: set `deletingFolder.value = store.folders[folderId]`

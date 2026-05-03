@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useToast } from 'primevue/usetoast'
 import { useFolderStore } from '../stores/folderStore'
 import FolderIconGrid from './FolderIconGrid.vue'
-import type { FolderChild } from '../shared/types'
+import RenameDialog from './RenameDialog.vue'
+import ConfirmDeleteDialog from './ConfirmDeleteDialog.vue'
+import type { Folder, FolderChild } from '../shared/types'
 
 const store = useFolderStore()
+const toast = useToast()
 
 // Local creation state
 const isCreating = ref(false)
 const duplicateError = ref('')
+
+// Local rename/delete state (Req 1.3, 1.5, 1.6, 2.3, 2.4, 2.5, 2.6)
+const renamingFolder = ref<Folder | null>(null)
+const deletingFolder = ref<Folder | null>(null)
+const renameApiError = ref<string | undefined>(undefined)
 
 function startCreating() {
   isCreating.value = true
@@ -46,6 +55,58 @@ function handleCreateCancel() {
 function handleSelect(folderId: string) {
   store.selectFolder(folderId)
 }
+
+// Rename handlers
+function handleRename(folderId: string) {
+  renamingFolder.value = store.folders[folderId] ?? null
+  renameApiError.value = undefined
+}
+
+async function handleRenameConfirm(newName: string) {
+  if (!renamingFolder.value) return
+  const folderId = renamingFolder.value.id
+  try {
+    await store.renameFolder(folderId, newName)
+    renamingFolder.value = null
+    renameApiError.value = undefined
+  } catch (err: unknown) {
+    const error = err as Error & { code?: string }
+    // Pass the error back to the dialog so it can display inline (Req 1.5, 1.6)
+    renameApiError.value = error.message || 'Something went wrong. Please try again.'
+  }
+}
+
+function handleRenameCancel() {
+  renamingFolder.value = null
+  renameApiError.value = undefined
+}
+
+// Delete handlers
+function handleDelete(folderId: string) {
+  deletingFolder.value = store.folders[folderId] ?? null
+}
+
+async function handleDeleteConfirm() {
+  if (!deletingFolder.value) return
+  const folderId = deletingFolder.value.id
+  try {
+    await store.deleteFolder(folderId)
+    deletingFolder.value = null
+  } catch (err: unknown) {
+    const error = err as Error & { code?: string }
+    // Show a generic error message via toast (Req 2.6)
+    const message =
+      error.code === 'NOT_FOUND'
+        ? 'Folder not found. It may have already been deleted.'
+        : 'Something went wrong. Please try again.'
+    toast.add({ severity: 'error', summary: 'Delete failed', detail: message, life: 5000 })
+    deletingFolder.value = null
+  }
+}
+
+function handleDeleteCancel() {
+  deletingFolder.value = null
+}
 </script>
 
 <template>
@@ -75,8 +136,27 @@ function handleSelect(folderId: string) {
         @create-confirm="handleCreateConfirm"
         @create-cancel="handleCreateCancel"
         @update:error="(val) => (duplicateError = val)"
+        @rename="handleRename"
+        @delete="handleDelete"
       />
     </div>
+
+    <!-- Rename dialog — shown when a folder is being renamed (Req 1.3, 1.5, 1.6) -->
+    <RenameDialog
+      v-if="renamingFolder !== null"
+      :folder="renamingFolder"
+      :api-error="renameApiError"
+      @confirm="handleRenameConfirm"
+      @cancel="handleRenameCancel"
+    />
+
+    <!-- Confirm delete dialog — shown when a folder is being deleted (Req 2.3, 2.4, 2.5, 2.6) -->
+    <ConfirmDeleteDialog
+      v-if="deletingFolder !== null"
+      :folder="deletingFolder"
+      @confirm="handleDeleteConfirm"
+      @cancel="handleDeleteCancel"
+    />
   </div>
 </template>
 
