@@ -146,8 +146,8 @@ Implement end-to-end folder creation across three layers: backend API endpoint, 
     - Use `fc.string()` filtered to whitespace-only strings; simulate confirm event; assert `createFolder` store action is never called
     - **Validates: Requirements 1.7, 2.7**
 
-- [ ] 9. Create `FolderIconGrid.vue` component
-  - [ ] 9.1 Create `frontend/src/components/FolderIconGrid.vue`
+- [x] 9. Create `FolderIconGrid.vue` component
+  - [x] 9.1 Create `frontend/src/components/FolderIconGrid.vue`
     - Props: `{ children: FolderChild[]; isCreating: boolean }`
     - Emits: `select(folderId: string)`, `createConfirm(name: string)`, `createCancel()`
     - Render children as a CSS grid of folder icon cards (folder emoji + name label below)
