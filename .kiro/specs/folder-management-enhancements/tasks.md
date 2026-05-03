@@ -37,13 +37,13 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Verify rollback is called when an error is thrown mid-transaction
     - _Requirements: 2.2_
 
-- [ ] 3. Extend `FolderService` with new business-logic methods
-  - [ ] 3.1 Implement `FolderService.getFolder` in `backend/src/modules/folders/service.ts`
+- [x] 3. Extend `FolderService` with new business-logic methods
+  - [x] 3.1 Implement `FolderService.getFolder` in `backend/src/modules/folders/service.ts`
     - Call `FolderRepository.findById(id)`; throw `NotFoundError` if result is `null`
     - Return the `Folder`
     - _Requirements: 4.8_
 
-  - [ ] 3.2 Implement `FolderService.renameFolder` in `backend/src/modules/folders/service.ts`
+  - [x] 3.2 Implement `FolderService.renameFolder` in `backend/src/modules/folders/service.ts`
     - Trim `name`; throw `ValidationError` if result is empty
     - Call `FolderRepository.exists(id)`; throw `NotFoundError` if false
     - Delegate to `FolderRepository.updateName(id, trimmed)` and return the result
@@ -56,7 +56,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Test: valid inputs delegate to `updateName` and return its result
     - _Requirements: 1.4, 1.6_
 
-  - [ ] 3.4 Implement `FolderService.deleteFolder` in `backend/src/modules/folders/service.ts`
+  - [x] 3.4 Implement `FolderService.deleteFolder` in `backend/src/modules/folders/service.ts`
     - Call `FolderRepository.exists(id)`; throw `NotFoundError` if false
     - Delegate to `FolderRepository.deleteSubtree(id)`
     - _Requirements: 2.2, 2.6, 2.8_
