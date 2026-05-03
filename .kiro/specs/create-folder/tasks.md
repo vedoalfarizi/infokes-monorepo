@@ -12,8 +12,8 @@ Implement end-to-end folder creation across three layers: backend API endpoint, 
   - Export the new schema alongside the existing ones
   - _Requirements: 3.1, 3.4, 3.5_
 
-- [ ] 2. Extend `FolderService` with `createFolder`
-  - [ ] 2.1 Implement `FolderService.createFolder(name, parentId)` in `backend/src/modules/folders/service.ts`
+- [x] 2. Extend `FolderService` with `createFolder`
+  - [x] 2.1 Implement `FolderService.createFolder(name, parentId)` in `backend/src/modules/folders/service.ts`
     - Trim `name`; throw `ValidationError` if result is empty
     - When `parentId` is non-null, call `FolderRepository.exists`; throw `NotFoundError` if false
     - Delegate to `FolderRepository.insertFolder(trimmed, parentId)` and return the result
