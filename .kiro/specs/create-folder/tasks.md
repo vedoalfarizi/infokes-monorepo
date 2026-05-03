@@ -31,7 +31,7 @@ Implement end-to-end folder creation across three layers: backend API endpoint, 
     - Use `fc.string()` filtered to whitespace-only strings; assert `ValidationError` is always thrown
     - **Validates: Requirements 3.4**
 
-- [ ] 3. Add `POST /folders` route to the controller
+- [x] 3. Add `POST /folders` route to the controller
   - Add the new route to `backend/src/modules/folders/index.ts`
   - Use `{ body: CreateFolderBodySchema }` for TypeBox validation
   - Call `FolderService.createFolder(body.name, body.parentId ?? null)`
