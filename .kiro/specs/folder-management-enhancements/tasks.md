@@ -251,8 +251,8 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Use `fc.string()` filtered to whitespace-only; simulate confirm; assert `renameFolder` store action is never called
     - **Validates: Requirements 1.4**
 
-- [ ] 10. Create `ConfirmDeleteDialog.vue` component
-  - [ ] 10.1 Create `frontend/src/components/ConfirmDeleteDialog.vue`
+- [x] 10. Create `ConfirmDeleteDialog.vue` component
+  - [x] 10.1 Create `frontend/src/components/ConfirmDeleteDialog.vue`
     - Props: `{ folder: Folder }`
     - Emits: `confirm: []`, `cancel: []`
     - Render a PrimeVue `Dialog` (modal, visible by default) with a title of "Delete Folder"
