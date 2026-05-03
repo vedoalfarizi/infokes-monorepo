@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { Folder, FolderChild, ApiResponse } from '../shared/types'
+import type { Folder, FolderChild, ApiResponse, ApiError } from '../shared/types'
 
 // Re-export shared types so consumers can import from the store as before
-export type { Folder, FolderChild, ApiResponse }
+export type { Folder, FolderChild, ApiResponse, ApiError }
 
 export type FetchStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
@@ -121,6 +121,53 @@ export const useFolderStore = defineStore('folders', () => {
     }
   }
 
+  /**
+   * Creates a new folder via POST /folders and updates normalized store state.
+   *
+   * - parentId === null  → root folder: added to rootIds (sorted alphabetically) and folders map
+   * - parentId !== null, parent status 'loaded' → appended to childrenMap[parentId]
+   * - parentId !== null, parent status not 'loaded' → childrenMap left untouched
+   *
+   * On API error the store state is left unchanged and an Error with a `code`
+   * property (matching the ApiError code) is thrown.
+   *
+   * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 6.2, 6.3
+   */
+  async function createFolder(name: string, parentId: string | null): Promise<Folder> {
+    const response = await fetch(`${API_BASE_URL}/folders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, parentId }),
+    })
+
+    if (!response.ok) {
+      const body: ApiError = await response.json()
+      const err = new Error(body.error.message) as Error & { code: string }
+      err.code = body.error.code
+      throw err
+    }
+
+    const body: ApiResponse<Folder> = await response.json()
+    const folder = body.data
+
+    // Add to normalized folders map and initialise fetch status (Req 5.6)
+    folders.value[folder.id] = folder
+    fetchStatus.value[folder.id] = 'idle'
+
+    if (parentId === null) {
+      // Root folder: append then sort alphabetically by name (Req 5.2, 6.2)
+      rootIds.value = [...rootIds.value, folder.id].sort((a, b) =>
+        folders.value[a].name.localeCompare(folders.value[b].name),
+      )
+    } else if (fetchStatus.value[parentId] === 'loaded') {
+      // Loaded parent: append to childrenMap so the right pane updates immediately (Req 5.3)
+      childrenMap.value[parentId] = [...(childrenMap.value[parentId] ?? []), folder.id]
+    }
+    // Unloaded parent: do not touch childrenMap — next fetchChildren will get the full list (Req 5.4)
+
+    return folder
+  }
+
   return {
     // State
     folders,
@@ -137,5 +184,6 @@ export const useFolderStore = defineStore('folders', () => {
     fetchRootFolders,
     fetchChildren,
     selectFolder,
+    createFolder,
   }
 })

@@ -73,8 +73,8 @@ Implement end-to-end folder creation across three layers: backend API endpoint, 
     - Use `fc.string({ minLength: 1 })` filtered to non-whitespace names with `parentId: null`; assert HTTP 201 and `{ data: { id, name, createdAt } }` shape
     - **Validates: Requirements 3.3**
 
-- [ ] 6. Add `createFolder` action to `folderStore`
-  - [ ] 6.1 Implement `createFolder(name, parentId)` in `frontend/src/stores/folderStore.ts`
+- [x] 6. Add `createFolder` action to `folderStore`
+  - [x] 6.1 Implement `createFolder(name, parentId)` in `frontend/src/stores/folderStore.ts`
     - POST to `/folders` with `{ name, parentId }`
     - On non-OK response: parse `ApiError` body, attach `code` to the thrown `Error`, re-throw
     - On success: add folder to `folders` map, set `fetchStatus[folder.id] = 'idle'`
