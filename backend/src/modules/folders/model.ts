@@ -15,3 +15,8 @@ export const FolderChildSchema = t.Object({
 export const UUIDParamSchema = t.Object({
   id: t.String({ format: 'uuid' }),
 })
+
+export const CreateFolderBodySchema = t.Object({
+  name:     t.String({ minLength: 1 }),
+  parentId: t.Optional(t.Union([t.String({ format: 'uuid' }), t.Null()])),
+})

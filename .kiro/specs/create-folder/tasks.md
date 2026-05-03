@@ -6,7 +6,7 @@ Implement end-to-end folder creation across three layers: backend API endpoint, 
 
 ## Tasks
 
-- [ ] 1. Extend backend model with `CreateFolderBodySchema`
+- [x] 1. Extend backend model with `CreateFolderBodySchema`
   - Add `CreateFolderBodySchema` to `backend/src/modules/folders/model.ts` using TypeBox
   - Schema: `name` as `t.String({ minLength: 1 })`, `parentId` as `t.Optional(t.Union([t.String({ format: 'uuid' }), t.Null()]))`
   - Export the new schema alongside the existing ones
