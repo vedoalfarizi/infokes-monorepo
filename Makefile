@@ -40,7 +40,7 @@ help:
 	@echo "  install-backend  Install backend dependencies via bun"
 	@echo "  install-frontend Install frontend dependencies via npm"
 	@echo ""
-	@echo "  migrate          Run all SQL migration files against the database"
+	@echo "  migrate          Run pending database migrations"
 	@echo "  seed             Run the seed script to populate sample data"
 	@echo ""
 	@echo "  DB_HOST=$(DB_HOST)  DB_PORT=$(DB_PORT)  DB_NAME=$(DB_NAME)  DB_USER=$(DB_USER)"
@@ -66,11 +66,7 @@ install-frontend:
 
 # ── Database ─────────────────────────────────────────────────
 migrate:
-	@echo "→ Running migration: 001_create_folders.sql"
-	$(PSQL) < $(MIGRATIONS_DIR)/001_create_folders.sql
-	@echo "→ Running migration: 002_create_folder_paths.sql"
-	$(PSQL) < $(MIGRATIONS_DIR)/002_create_folder_paths.sql
-	@echo "✓ Migrations complete."
+	cd backend && bun run migrate
 
 seed:
 	@echo "→ Running seed script..."

@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "start": "bun run src/index.ts",
+    "migrate": "bun run src/migrate.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },
