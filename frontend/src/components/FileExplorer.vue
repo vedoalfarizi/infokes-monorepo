@@ -9,7 +9,7 @@ import SplitterPanel from 'primevue/splitterpanel'
 const store = useFolderStore()
 
 onMounted(() => {
-  store.fetchRootFolders()
+  store.initializeStore()
 })
 </script>
 

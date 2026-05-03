@@ -309,7 +309,7 @@ Implement four enhancements on top of the existing create-folder foundation: ren
     - Test: clicking Back button calls `store.navigateBack()`
     - _Requirements: 3.3, 3.4, 3.5_
 
-- [ ] 15. Update `FileExplorer.vue` to use `initializeStore`
+- [x] 15. Update `FileExplorer.vue` to use `initializeStore`
   - In `frontend/src/components/FileExplorer.vue`, replace `store.fetchRootFolders()` with `store.initializeStore()` in the `onMounted` callback
   - _Requirements: 4.2, 4.3, 4.4, 4.5, 4.6_
 
