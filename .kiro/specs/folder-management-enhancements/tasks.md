@@ -223,8 +223,8 @@ Implement four enhancements on top of the existing create-folder foundation: ren
 - [ ] 8. Checkpoint — verify store tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Create `RenameDialog.vue` component
-  - [ ] 9.1 Create `frontend/src/components/RenameDialog.vue`
+- [x] 9. Create `RenameDialog.vue` component
+  - [x] 9.1 Create `frontend/src/components/RenameDialog.vue`
     - Props: `{ folder: Folder }`
     - Emits: `confirm: (newName: string)`, `cancel: []`
     - Render a PrimeVue `Dialog` (modal, visible by default) with a title of "Rename Folder"

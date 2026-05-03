@@ -4,9 +4,11 @@ import { ref, watch, onMounted } from 'vue'
 const props = withDefaults(defineProps<{
   placeholder?: string
   error?: string
+  initialValue?: string
 }>(), {
   placeholder: 'Folder name',
   error: '',
+  initialValue: '',
 })
 
 const emit = defineEmits<{
@@ -16,7 +18,7 @@ const emit = defineEmits<{
 }>()
 
 const inputRef = ref<HTMLInputElement | null>(null)
-const inputValue = ref('')
+const inputValue = ref(props.initialValue)
 
 // Clear the error when the user modifies the input
 watch(inputValue, () => {
