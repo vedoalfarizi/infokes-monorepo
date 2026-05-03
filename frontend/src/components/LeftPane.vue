@@ -50,13 +50,15 @@ function handleUpdateError(value: string) {
 <template>
   <div class="left-pane">
     <div class="left-pane__toolbar">
+      <span class="left-pane__toolbar-label">Folders</span>
       <button
         class="left-pane__new-folder-btn"
         type="button"
-        aria-label="New Folder"
+        title="New root folder"
+        aria-label="New root folder"
         @click="startCreating"
       >
-        + New Folder
+        📁+
       </button>
     </div>
 
@@ -86,28 +88,46 @@ function handleUpdateError(value: string) {
 .left-pane__toolbar {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  justify-content: space-between;
+  padding: 6px 12px;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
+}
+
+.left-pane__toolbar-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+  user-select: none;
 }
 
 .left-pane__new-folder-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #1976d2;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  color: #6b7280;
   background: transparent;
-  border: 1px solid #1976d2;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s;
 }
 
 .left-pane__new-folder-btn:hover {
-  background-color: #e3f2fd;
+  background-color: #f3f4f6;
+  color: #1976d2;
+}
+
+.left-pane__new-folder-btn:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
 }
 
 .left-pane__inline-input {
